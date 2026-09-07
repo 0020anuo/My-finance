@@ -1,0 +1,3867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MyFinance - Personal Finance Tracker</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+    --primary: #2563eb;
+    --primary-light: #dbeafe;
+    --green: #16a34a;
+    --green-light: #dcfce7;
+    --red: #dc2626;
+    --red-light: #fee2e2;
+    --orange: #ea580c;
+    --orange-light: #ffedd5;
+    --purple: #7c3aed;
+    --purple-light: #ede9fe;
+
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --text: #172033;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --sidebar: #111827;
+
+    --shadow: 0 4px 20px rgba(0,0,0,.06);
+}
+
+body.dark {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --border: #334155;
+    --sidebar: #020617;
+    --primary-light: #1e3a5f;
+    --green-light: #163524;
+    --red-light: #4a1d24;
+    --orange-light: #4a2a14;
+    --purple-light: #312e5b;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Inter, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: .3s;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+}
+
+/* =========================
+   APP LAYOUT
+========================= */
+
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar {
+    width: 260px;
+    background: var(--sidebar);
+    color: white;
+    padding: 25px 16px;
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 800;
+    padding: 0 12px 30px;
+}
+
+.logo span {
+    color: #60a5fa;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.nav button {
+    background: transparent;
+    color: #94a3b8;
+    padding: 13px 15px;
+    border-radius: 10px;
+    text-align: left;
+    font-size: 15px;
+    transition: .2s;
+}
+
+.nav button:hover,
+.nav button.active {
+    background: rgba(255,255,255,.1);
+    color: white;
+}
+
+.nav-icon {
+    display: inline-block;
+    width: 28px;
+}
+
+/* =========================
+   MAIN
+========================= */
+
+.main {
+    margin-left: 260px;
+    width: calc(100% - 260px);
+    padding: 30px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.page-title h1 {
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.page-title p {
+    color: var(--muted);
+}
+
+.top-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.add-btn {
+    background: var(--primary);
+    color: white;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.add-btn:hover {
+    opacity: .9;
+}
+
+/* =========================
+   PAGES
+========================= */
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+/* =========================
+   SUMMARY CARDS
+========================= */
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+}
+
+.summary-card {
+    min-height: 140px;
+}
+
+.summary-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.summary-label {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.summary-icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    font-size: 20px;
+}
+
+.summary-value {
+    font-size: 25px;
+    font-weight: 800;
+    margin-top: 20px;
+    word-break: break-word;
+}
+
+.blue { background: var(--primary-light); color: var(--primary); }
+.green { background: var(--green-light); color: var(--green); }
+.red { background: var(--red-light); color: var(--red); }
+.orange { background: var(--orange-light); color: var(--orange); }
+.purple { background: var(--purple-light); color: var(--purple); }
+
+/* =========================
+   GRID
+========================= */
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1.3fr .7fr;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.section-title h2 {
+    font-size: 18px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: left;
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    padding: 13px 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+td {
+    padding: 15px 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+}
+
+.amount-income {
+    color: var(--green);
+    font-weight: 700;
+}
+
+.amount-expense {
+    color: var(--red);
+    font-weight: 700;
+}
+
+.amount-neutral {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+/* =========================
+   BADGES
+========================= */
+
+.badge {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.badge-unpaid {
+    background: var(--red-light);
+    color: var(--red);
+}
+
+.badge-partial {
+    background: var(--orange-light);
+    color: var(--orange);
+}
+
+.badge-paid {
+    background: var(--green-light);
+    color: var(--green);
+}
+
+.badge-income {
+    background: var(--green-light);
+    color: var(--green);
+}
+
+.badge-expense {
+    background: var(--red-light);
+    color: var(--red);
+}
+
+.badge-lend {
+    background: var(--purple-light);
+    color: var(--purple);
+}
+
+.badge-borrow {
+    background: var(--orange-light);
+    color: var(--orange);
+}
+
+/* =========================
+   FILTERS
+========================= */
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filter-input {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    border-radius: 9px;
+    min-width: 150px;
+}
+
+/* =========================
+   ACTION BUTTONS
+========================= */
+
+.action-btn {
+    padding: 7px 10px;
+    border-radius: 7px;
+    margin-right: 4px;
+}
+
+.edit-btn {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.delete-btn {
+    background: var(--red-light);
+    color: var(--red);
+}
+
+.pay-btn {
+    background: var(--green-light);
+    color: var(--green);
+}
+
+/* =========================
+   MODAL
+========================= */
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,.65);
+    z-index: 500;
+    overflow-y: auto;
+    padding: 30px 15px;
+}
+
+.modal.show {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 650px;
+    background: var(--card);
+    border-radius: 18px;
+    padding: 25px;
+    margin: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.close-btn {
+    background: transparent;
+    color: var(--muted);
+    font-size: 28px;
+}
+
+/* =========================
+   FORM
+========================= */
+
+.transaction-types {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.type-btn {
+    padding: 13px 8px;
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.type-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.form-group.full {
+    grid-column: 1 / -1;
+}
+
+label {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--bg);
+    color: var(--text);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.cancel-btn {
+    padding: 12px 18px;
+    background: var(--bg);
+    color: var(--text);
+    border-radius: 9px;
+}
+
+.save-btn {
+    padding: 12px 20px;
+    background: var(--primary);
+    color: white;
+    border-radius: 9px;
+}
+
+/* =========================
+   EMPTY
+========================= */
+
+.empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--muted);
+}
+
+/* =========================
+   MOBILE NAV
+========================= */
+
+.mobile-nav {
+    display: none;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width: 1200px) {
+    .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media(max-width: 850px) {
+
+    .sidebar {
+        display: none;
+    }
+
+    .main {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px 15px 90px;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .grid-2,
+    .grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .summary-value {
+        font-size: 19px;
+    }
+
+    .topbar {
+        align-items: flex-start;
+    }
+
+    .page-title h1 {
+        font-size: 22px;
+    }
+
+    .add-btn {
+        font-size: 0;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+    }
+
+    .add-btn::after {
+        content: "+";
+        font-size: 25px;
+    }
+
+    .mobile-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        background: var(--card);
+        border-top: 1px solid var(--border);
+        justify-content: space-around;
+        align-items: center;
+        z-index: 300;
+    }
+
+    .mobile-nav button {
+        background: transparent;
+        color: var(--muted);
+        font-size: 20px;
+    }
+
+    .mobile-nav button.active {
+        color: var(--primary);
+    }
+
+    .transaction-types {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group.full {
+        grid-column: auto;
+    }
+}
+
+@media(max-width: 500px) {
+
+    .summary-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .summary-card {
+        padding: 14px;
+    }
+
+    .summary-icon {
+        width: 35px;
+        height: 35px;
+    }
+
+    .filters {
+        flex-direction: column;
+    }
+
+    .filter-input {
+        width: 100%;
+    }
+}
+
+/* =========================
+   SAVINGS
+========================= */
+.savings-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-bottom:20px; }
+.progress { height:10px; background:var(--border); border-radius:999px; overflow:hidden; margin-top:10px; }
+.progress > span { display:block; height:100%; background:var(--green); border-radius:999px; }
+.goal-row { margin-bottom:18px; }
+@media(max-width:850px){ .savings-summary{grid-template-columns:1fr;} }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            My<span>Finance</span>
+        </div>
+
+        <nav class="nav">
+
+            <button class="nav-link active" data-page="dashboard">
+                <span class="nav-icon">🏠</span> Dashboard
+            </button>
+
+            <button class="nav-link" data-page="income">
+                <span class="nav-icon">💰</span> Income
+            </button>
+
+            <button class="nav-link" data-page="expenses">
+                <span class="nav-icon">💸</span> Expenses
+            </button>
+
+            <button class="nav-link" data-page="savings">
+                <span class="nav-icon">🐷</span> Savings
+            </button>
+
+            <button class="nav-link" data-page="lent">
+                <span class="nav-icon">🤝</span> Money Lent
+            </button>
+
+            <button class="nav-link" data-page="borrowed">
+                <span class="nav-icon">🏦</span> Borrowed / Debt
+            </button>
+
+            <button class="nav-link" data-page="transactions">
+                <span class="nav-icon">📋</span> Transactions
+            </button>
+
+            <button class="nav-link" data-page="reports">
+                <span class="nav-icon">📊</span> Reports
+            </button>
+
+            <button class="nav-link" data-page="settings">
+                <span class="nav-icon">⚙️</span> Settings
+            </button>
+
+        </nav>
+
+    </aside>
+
+
+    <!-- MAIN -->
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div class="page-title">
+                <h1 id="pageTitle">Dashboard</h1>
+                <p id="pageSubtitle">Your financial overview</p>
+            </div>
+
+            <div class="top-actions">
+
+                <button class="icon-btn" id="themeToggle" title="Light / Dark Mode">
+                    🌙
+                </button>
+
+                <button class="add-btn" id="openAddModal">
+                    + Add Transaction
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- ================= DASHBOARD ================= -->
+
+        <section class="page active" id="dashboard">
+
+            <div class="summary-grid">
+
+                <div class="card summary-card">
+                    <div class="summary-top">
+                        <span class="summary-label">Total Income</span>
+                        <span class="summary-icon green">💰</span>
+                    </div>
+                    <div class="summary-value" id="totalIncome">$0.00</div>
+                </div>
+
+                <div class="card summary-card">
+                    <div class="summary-top">
+                        <span class="summary-label">Total Expenses</span>
+                        <span class="summary-icon red">💸</span>
+                    </div>
+                    <div class="summary-value" id="totalExpenses">$0.00</div>
+                </div>
+
+                <div class="card summary-card">
+                    <div class="summary-top">
+                        <span class="summary-label">Available Balance</span>
+                        <span class="summary-icon blue">💵</span>
+                    </div>
+                    <div class="summary-value" id="availableBalance">$0.00</div>
+                </div>
+
+                <div class="card summary-card">
+                    <div class="summary-top">
+                        <span class="summary-label">Total Savings</span>
+                        <span class="summary-icon green">🐷</span>
+                    </div>
+                    <div class="summary-value" id="totalSavings">$0.00</div>
+                    <div class="summary-label" id="savingsRate">Savings rate: 0%</div>
+                </div>
+
+                <div class="card summary-card">
+                    <div class="summary-top">
+                        <span class="summary-label">Money Lent</span>
+                        <span class="summary-icon purple">🤝</span>
+                    </div>
+                    <div class="summary-value" id="totalLent">$0.00</div>
+                </div>
+
+                <div class="card summary-card">
+                    <div class="summary-top">
+                        <span class="summary-label">Receivable</span>
+                        <span class="summary-icon orange">📥</span>
+                    </div>
+                    <div class="summary-value" id="totalReceivable">$0.00</div>
+                </div>
+
+                <div class="card summary-card">
+                    <div class="summary-top">
+                        <span class="summary-label">Money Borrowed</span>
+                        <span class="summary-icon orange">🏦</span>
+                    </div>
+                    <div class="summary-value" id="totalBorrowed">$0.00</div>
+                </div>
+
+                <div class="card summary-card">
+                    <div class="summary-top">
+                        <span class="summary-label">Debt Remaining</span>
+                        <span class="summary-icon red">📤</span>
+                    </div>
+                    <div class="summary-value" id="totalDebt">$0.00</div>
+                </div>
+
+                <div class="card summary-card">
+                    <div class="summary-top">
+                        <span class="summary-label">Net Position</span>
+                        <span class="summary-icon blue">📈</span>
+                    </div>
+                    <div class="summary-value" id="netBalance">$0.00</div>
+                </div>
+
+            </div>
+
+
+            <div class="grid-2">
+
+                <div class="card">
+
+                    <div class="section-title">
+                        <h2>Income vs Expenses</h2>
+                    </div>
+
+                    <canvas id="incomeExpenseChart"></canvas>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="section-title">
+                        <h2>Quick Overview</h2>
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:20px;">
+
+                        <div>
+                            <div class="summary-label">Today's Income</div>
+                            <div class="summary-value" id="todayIncome">$0.00</div>
+                        </div>
+
+                        <div>
+                            <div class="summary-label">Today's Expenses</div>
+                            <div class="summary-value" id="todayExpense">$0.00</div>
+                        </div>
+
+                        <div>
+                            <div class="summary-label">This Week's Spending</div>
+                            <div class="summary-value" id="weekExpense">$0.00</div>
+                        </div>
+
+                        <div>
+                            <div class="summary-label">This Month's Balance</div>
+                            <div class="summary-value" id="monthBalance">$0.00</div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="section-title">
+                    <h2>Recent Transactions</h2>
+                    <button class="add-btn" onclick="showPage('transactions')">
+                        View All
+                    </button>
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="recentTransactions"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= INCOME ================= -->
+
+        <section class="page" id="income">
+
+            <div class="card">
+
+                <div class="section-title">
+                    <h2>Income Records</h2>
+
+                    <button class="add-btn" onclick="openTransactionModal('income')">
+                        + Add Income
+                    </button>
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Source</th>
+                                <th>Category</th>
+                                <th>Notes</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="incomeTable"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= EXPENSES ================= -->
+
+        <section class="page" id="expenses">
+
+            <div class="card">
+
+                <div class="section-title">
+                    <h2>Expense Records</h2>
+
+                    <button class="add-btn" onclick="openTransactionModal('expense')">
+                        + Add Expense
+                    </button>
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="expenseTable"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= SAVINGS ================= -->
+        <section class="page" id="savings">
+            <div class="savings-summary">
+                <div class="card">
+                    <div class="summary-label">Current Savings</div>
+                    <div class="summary-value" id="savingsBalance">$0.00</div>
+                </div>
+                <div class="card">
+                    <div class="summary-label">Total Saved</div>
+                    <div class="summary-value" id="totalSavedAmount">$0.00</div>
+                </div>
+                <div class="card">
+                    <div class="summary-label">Savings Rate</div>
+                    <div class="summary-value" id="savingsRatePage">0%</div>
+                </div>
+            </div>
+            <div class="card" style="margin-bottom:20px;">
+                <div class="section-title">
+                    <h2>Savings Goals</h2>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button class="add-btn" onclick="openTransactionModal('save')">+ Add Savings</button>
+                        <button class="add-btn" onclick="openTransactionModal('withdrawSavings')">− Withdraw</button>
+                    </div>
+                </div>
+                <div id="savingsGoalsList"></div>
+            </div>
+            <div class="card">
+                <div class="section-title"><h2>Savings History</h2></div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Date</th><th>Action</th><th>Goal / Category</th><th>Notes</th><th>Amount</th><th>Actions</th></tr></thead>
+                        <tbody id="savingsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= LENT ================= -->
+
+        <section class="page" id="lent">
+
+            <div class="card">
+
+                <div class="section-title">
+                    <h2>Money Lent / Receivable</h2>
+
+                    <button class="add-btn" onclick="openTransactionModal('lend')">
+                        + Lend Money
+                    </button>
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Person</th>
+                                <th>Date Lent</th>
+                                <th>Expected Return</th>
+                                <th>Original Amount</th>
+                                <th>Returned</th>
+                                <th>Remaining</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="lentTable"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= BORROWED ================= -->
+
+        <section class="page" id="borrowed">
+
+            <div class="card">
+
+                <div class="section-title">
+                    <h2>Borrowed Money / Debt</h2>
+
+                    <button class="add-btn" onclick="openTransactionModal('borrow')">
+                        + Borrow Money
+                    </button>
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Lender</th>
+                                <th>Date Borrowed</th>
+                                <th>Due Date</th>
+                                <th>Original Amount</th>
+                                <th>Repaid</th>
+                                <th>Remaining</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="borrowedTable"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= TRANSACTIONS ================= -->
+
+        <section class="page" id="transactions">
+
+            <div class="card">
+
+                <div class="section-title">
+                    <h2>Transaction History</h2>
+                </div>
+
+                <div class="filters">
+
+                    <input
+                        class="filter-input"
+                        id="searchTransactions"
+                        placeholder="Search..."
+                    >
+
+                    <input
+                        type="date"
+                        class="filter-input"
+                        id="filterDate"
+                    >
+
+                    <select
+                        class="filter-input"
+                        id="filterType"
+                    >
+                        <option value="">All Types</option>
+                        <option value="income">Income</option>
+                        <option value="expense">Expense</option>
+                        <option value="lend">Money Lent</option>
+                        <option value="receive">Money Received</option>
+                        <option value="borrow">Money Borrowed</option>
+                        <option value="repay">Debt Repayment</option>
+                    </select>
+
+                </div>
+
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Category / Person</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="transactionTable"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= REPORTS ================= -->
+
+        <section class="page" id="reports">
+
+            <div class="grid-2">
+
+                <div class="card">
+                    <div class="section-title">
+                        <h2>Monthly Income & Expenses</h2>
+                    </div>
+
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+
+                <div class="card">
+                    <div class="section-title">
+                        <h2>Expenses by Category</h2>
+                    </div>
+
+                    <canvas id="expenseCategoryChart"></canvas>
+                </div>
+
+            </div>
+
+
+            <div class="grid-2">
+
+                <div class="card">
+                    <div class="section-title">
+                        <h2>Lent vs Returned</h2>
+                    </div>
+
+                    <canvas id="lentChart"></canvas>
+                </div>
+
+                <div class="card">
+
+                    <div class="section-title">
+                        <h2>Financial Position</h2>
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:18px;">
+
+                        <div>
+                            <div class="summary-label">Outstanding Receivables</div>
+                            <div class="summary-value" id="reportReceivable">$0.00</div>
+                        </div>
+
+                        <div>
+                            <div class="summary-label">Remaining Debt</div>
+                            <div class="summary-value" id="reportDebt">$0.00</div>
+                        </div>
+
+                        <div>
+                            <div class="summary-label">Net Financial Position</div>
+                            <div class="summary-value" id="reportNet">$0.00</div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= SETTINGS ================= -->
+
+        <section class="page" id="settings">
+
+            <div class="card">
+
+                <div class="section-title">
+                    <h2>Settings</h2>
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label>Currency Symbol</label>
+
+                        <input
+                            id="currencyInput"
+                            value="$"
+                            maxlength="5"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label>Theme</label>
+
+                        <select id="themeSelect">
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="form-actions">
+
+                    <button class="save-btn" id="saveSettings">
+                        Save Settings
+                    </button>
+
+                    <button class="delete-btn action-btn" id="clearData">
+                        Clear All Data
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- MOBILE NAV -->
+
+<div class="mobile-nav">
+
+    <button class="mobile-nav-link active" data-page="dashboard">🏠</button>
+    <button class="mobile-nav-link" data-page="income">💰</button>
+    <button class="mobile-nav-link" data-page="expenses">💸</button>
+    <button class="mobile-nav-link" data-page="savings">🐷</button>
+    <button class="mobile-nav-link" data-page="transactions">📋</button>
+    <button class="mobile-nav-link" data-page="reports">📊</button>
+
+</div>
+
+
+<!-- ================= TRANSACTION MODAL ================= -->
+
+<div class="modal" id="transactionModal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2 id="modalTitle">Add Transaction</h2>
+
+            <button class="close-btn" id="closeModal">
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="transaction-types">
+
+            <button class="type-btn active" data-type="income">
+                💰 Income
+            </button>
+
+            <button class="type-btn" data-type="expense">
+                💸 Expense
+            </button>
+
+            <button class="type-btn" data-type="lend">
+                🤝 Lend Money
+            </button>
+
+            <button class="type-btn" data-type="receive">
+                📥 Receive Back
+            </button>
+
+            <button class="type-btn" data-type="borrow">
+                🏦 Borrow Money
+            </button>
+
+            <button class="type-btn" data-type="repay">
+                📤 Repay Debt
+            </button>
+
+            <button class="type-btn" data-type="save">
+                🐷 Save Money
+            </button>
+
+            <button class="type-btn" data-type="withdrawSavings">
+                💳 Withdraw Savings
+            </button>
+
+        </div>
+
+
+        <form id="transactionForm">
+
+            <div id="dynamicForm"></div>
+
+            <div class="form-actions">
+
+                <button
+                    type="button"
+                    class="cancel-btn"
+                    id="cancelModal"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="save-btn"
+                >
+                    Save Transaction
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   DATA
+===================================================== */
+
+let transactions = JSON.parse(localStorage.getItem("financeTransactions")) || [];
+let settings = JSON.parse(localStorage.getItem("financeSettings")) || {
+    currency: "$",
+    theme: "light"
+};
+
+let selectedType = "income";
+let editingId = null;
+
+let charts = {};
+
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function saveData() {
+    localStorage.setItem(
+        "financeTransactions",
+        JSON.stringify(transactions)
+    );
+}
+
+function saveSettingsData() {
+    localStorage.setItem(
+        "financeSettings",
+        JSON.stringify(settings)
+    );
+}
+
+function formatMoney(amount) {
+
+    return `${settings.currency}${Number(amount || 0)
+        .toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })}`;
+}
+
+function todayDate() {
+    return new Date().toISOString().split("T")[0];
+}
+
+function getStatus(amount, paid) {
+
+    amount = Number(amount);
+    paid = Number(paid || 0);
+
+    if (paid <= 0) {
+        return "Unpaid";
+    }
+
+    if (paid >= amount) {
+        return "Fully Paid";
+    }
+
+    return "Partially Paid";
+}
+
+function statusBadge(status) {
+
+    let className = "badge-unpaid";
+
+    if (status === "Partially Paid") {
+        className = "badge-partial";
+    }
+
+    if (status === "Fully Paid") {
+        className = "badge-paid";
+    }
+
+    return `<span class="badge ${className}">${status}</span>`;
+}
+
+function transactionBadge(type) {
+
+    const map = {
+        income: ["Income", "badge-income"],
+        expense: ["Expense", "badge-expense"],
+        lend: ["Money Lent", "badge-lend"],
+        receive: ["Money Received", "badge-income"],
+        borrow: ["Money Borrowed", "badge-borrow"],
+        repay: ["Debt Repayment", "badge-expense"],
+        save: ["Savings Deposit", "badge-income"],
+        withdrawSavings: ["Savings Withdrawal", "badge-borrow"]
+    };
+
+    const item = map[type] || [type, "badge-income"];
+
+    return `<span class="badge ${item[1]}">${item[0]}</span>`;
+}
+
+
+/* =====================================================
+   PAGE NAVIGATION
+===================================================== */
+
+const pageInfo = {
+
+    dashboard: [
+        "Dashboard",
+        "Your financial overview"
+    ],
+
+    income: [
+        "Income",
+        "Track all your earnings"
+    ],
+
+    expenses: [
+        "Expenses",
+        "Track where your money goes"
+    ],
+    savings: [
+        "Savings",
+        "Build and track your savings"
+    ],
+
+    lent: [
+        "Money Lent",
+        "Money you expect to receive back"
+    ],
+
+    borrowed: [
+        "Borrowed Money",
+        "Track your debts and repayments"
+    ],
+
+    transactions: [
+        "Transactions",
+        "Complete financial history"
+    ],
+
+    reports: [
+        "Reports",
+        "Understand your financial activity"
+    ],
+
+    settings: [
+        "Settings",
+        "Manage your finance tracker preferences"
+    ]
+
+};
+
+
+function showPage(pageName) {
+
+    document.querySelectorAll(".page").forEach(page => {
+        page.classList.remove("active");
+    });
+
+    document.getElementById(pageName)
+        .classList.add("active");
+
+    document.querySelectorAll(".nav-link").forEach(btn => {
+        btn.classList.toggle(
+            "active",
+            btn.dataset.page === pageName
+        );
+    });
+
+    document.querySelectorAll(".mobile-nav-link").forEach(btn => {
+        btn.classList.toggle(
+            "active",
+            btn.dataset.page === pageName
+        );
+    });
+
+    document.getElementById("pageTitle")
+        .textContent = pageInfo[pageName][0];
+
+    document.getElementById("pageSubtitle")
+        .textContent = pageInfo[pageName][1];
+
+    renderAll();
+
+    if (pageName === "reports") {
+        setTimeout(renderCharts, 100);
+    }
+}
+
+
+document.querySelectorAll(".nav-link, .mobile-nav-link")
+    .forEach(button => {
+
+        button.addEventListener("click", () => {
+            showPage(button.dataset.page);
+        });
+
+    });
+
+
+/* =====================================================
+   CALCULATIONS
+===================================================== */
+
+function calculateFinance() {
+
+    let totalIncome = 0;
+    let totalExpenses = 0;
+
+    let totalLent = 0;
+    let moneyReceivedBack = 0;
+
+    let totalBorrowed = 0;
+    let debtRepaid = 0;
+    let totalSaved = 0;
+    let savingsWithdrawn = 0;
+
+    transactions.forEach(t => {
+
+        const amount = Number(t.amount || 0);
+
+        if (t.type === "income") {
+            totalIncome += amount;
+        }
+
+        if (t.type === "expense") {
+            totalExpenses += amount;
+        }
+
+        if (t.type === "lend") {
+            totalLent += amount;
+        }
+
+        if (t.type === "receive") {
+            moneyReceivedBack += amount;
+        }
+
+        if (t.type === "borrow") {
+            totalBorrowed += amount;
+        }
+
+        if (t.type === "repay") {
+            debtRepaid += amount;
+        }
+
+        if (t.type === "save") {
+            totalSaved += amount;
+        }
+
+        if (t.type === "withdrawSavings") {
+            savingsWithdrawn += amount;
+        }
+
+    });
+
+
+    const receivable =
+        transactions
+            .filter(t => t.type === "lend")
+            .reduce((sum, lend) => {
+
+                const returned =
+                    transactions
+                        .filter(r =>
+                            r.type === "receive" &&
+                            r.relatedId === lend.id
+                        )
+                        .reduce((a, b) =>
+                            a + Number(b.amount), 0
+                        );
+
+                return sum +
+                    Math.max(
+                        0,
+                        Number(lend.amount) - returned
+                    );
+
+            }, 0);
+
+
+    const remainingDebt =
+        transactions
+            .filter(t => t.type === "borrow")
+            .reduce((sum, borrow) => {
+
+                const repaid =
+                    transactions
+                        .filter(r =>
+                            r.type === "repay" &&
+                            r.relatedId === borrow.id
+                        )
+                        .reduce((a, b) =>
+                            a + Number(b.amount), 0
+                        );
+
+                return sum +
+                    Math.max(
+                        0,
+                        Number(borrow.amount) - repaid
+                    );
+
+            }, 0);
+
+
+    /*
+        AVAILABLE BALANCE:
+
+        Total Income
+        - Expenses
+        - Money Lent
+        + Money Received Back
+        + Borrowed Money
+        - Debt Repaid
+    */
+
+    const availableBalance =
+        totalIncome
+        - totalExpenses
+        - totalLent
+        + moneyReceivedBack
+        + totalBorrowed
+        - debtRepaid
+        - totalSaved
+        + savingsWithdrawn;
+
+
+    /*
+        Net Position:
+
+        Cash Available
+        + Money Still Receivable
+        - Remaining Debt
+    */
+
+    const currentSavings = Math.max(0, totalSaved - savingsWithdrawn);
+    const savingsRate = totalIncome > 0 ? (currentSavings / totalIncome) * 100 : 0;
+
+    const netBalance =
+        availableBalance
+        + currentSavings
+        + receivable
+        - remainingDebt;
+
+
+    return {
+        totalIncome,
+        totalExpenses,
+        totalLent,
+        moneyReceivedBack,
+        totalBorrowed,
+        debtRepaid,
+        totalSaved,
+        savingsWithdrawn,
+        currentSavings,
+        savingsRate,
+        receivable,
+        remainingDebt,
+        availableBalance,
+        netBalance
+    };
+}
+
+
+/* =====================================================
+   RENDER DASHBOARD
+===================================================== */
+
+function renderDashboard() {
+
+    const f = calculateFinance();
+
+    document.getElementById("totalIncome").textContent =
+        formatMoney(f.totalIncome);
+
+    document.getElementById("totalExpenses").textContent =
+        formatMoney(f.totalExpenses);
+
+    document.getElementById("availableBalance").textContent =
+        formatMoney(f.availableBalance);
+
+    document.getElementById("totalSavings").textContent =
+        formatMoney(f.currentSavings);
+
+    document.getElementById("savingsRate").textContent =
+        `Savings rate: ${f.savingsRate.toFixed(1)}%`;
+
+    document.getElementById("totalLent").textContent =
+        formatMoney(f.totalLent);
+
+    document.getElementById("totalReceivable").textContent =
+        formatMoney(f.receivable);
+
+    document.getElementById("totalBorrowed").textContent =
+        formatMoney(f.totalBorrowed);
+
+    document.getElementById("totalDebt").textContent =
+        formatMoney(f.remainingDebt);
+
+    document.getElementById("netBalance").textContent =
+        formatMoney(f.netBalance);
+
+
+    const today = todayDate();
+
+    const now = new Date();
+
+    const weekStart = new Date();
+    weekStart.setDate(now.getDate() - 6);
+
+
+    let todayIncome = 0;
+    let todayExpense = 0;
+    let weekExpense = 0;
+    let monthIncome = 0;
+    let monthExpense = 0;
+
+
+    transactions.forEach(t => {
+
+        const amount = Number(t.amount);
+        const date = new Date(t.date);
+
+        if (t.date === today) {
+
+            if (t.type === "income") {
+                todayIncome += amount;
+            }
+
+            if (t.type === "expense") {
+                todayExpense += amount;
+            }
+
+        }
+
+
+        if (
+            t.type === "expense" &&
+            date >= weekStart &&
+            date <= now
+        ) {
+            weekExpense += amount;
+        }
+
+
+        if (
+            date.getMonth() === now.getMonth() &&
+            date.getFullYear() === now.getFullYear()
+        ) {
+
+            if (t.type === "income") {
+                monthIncome += amount;
+            }
+
+            if (t.type === "expense") {
+                monthExpense += amount;
+            }
+
+        }
+
+    });
+
+
+    document.getElementById("todayIncome").textContent =
+        formatMoney(todayIncome);
+
+    document.getElementById("todayExpense").textContent =
+        formatMoney(todayExpense);
+
+    document.getElementById("weekExpense").textContent =
+        formatMoney(weekExpense);
+
+    document.getElementById("monthBalance").textContent =
+        formatMoney(monthIncome - monthExpense);
+
+
+    renderRecentTransactions();
+}
+
+
+/* =====================================================
+   RECENT TRANSACTIONS
+===================================================== */
+
+function renderRecentTransactions() {
+
+    const tbody =
+        document.getElementById("recentTransactions");
+
+    const recent =
+        [...transactions]
+            .sort((a, b) =>
+                new Date(b.date) - new Date(a.date)
+            )
+            .slice(0, 6);
+
+
+    if (!recent.length) {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="empty">
+                    No transactions yet.
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+
+    tbody.innerHTML = recent.map(t => {
+
+        const negative =
+            ["expense", "lend", "repay", "save"]
+                .includes(t.type);
+
+        const amountClass =
+            negative
+                ? "amount-expense"
+                : "amount-income";
+
+        const sign =
+            negative ? "-" : "+";
+
+        return `
+            <tr>
+
+                <td>${t.date}</td>
+
+                <td>
+                    ${transactionBadge(t.type)}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        t.description ||
+                        t.category ||
+                        t.person ||
+                        t.source ||
+                        "-"
+                    )}
+                </td>
+
+                <td class="${amountClass}">
+                    ${sign}${formatMoney(t.amount)}
+                </td>
+
+            </tr>
+        `;
+
+    }).join("");
+
+}
+
+
+/* =====================================================
+   INCOME TABLE
+===================================================== */
+
+function renderIncome() {
+
+    const tbody =
+        document.getElementById("incomeTable");
+
+    const list =
+        transactions
+            .filter(t => t.type === "income")
+            .sort((a,b) =>
+                new Date(b.date) - new Date(a.date)
+            );
+
+
+    if (!list.length) {
+
+        tbody.innerHTML =
+            `<tr>
+                <td colspan="6" class="empty">
+                    No income records yet.
+                </td>
+            </tr>`;
+
+        return;
+    }
+
+
+    tbody.innerHTML = list.map(t => `
+
+        <tr>
+
+            <td>${t.date}</td>
+
+            <td>${escapeHTML(t.source || "-")}</td>
+
+            <td>${escapeHTML(t.category || "-")}</td>
+
+            <td>${escapeHTML(t.description || "-")}</td>
+
+            <td class="amount-income">
+                +${formatMoney(t.amount)}
+            </td>
+
+            <td>
+                <button
+                    class="action-btn edit-btn"
+                    onclick="editTransaction('${t.id}')"
+                >
+                    Edit
+                </button>
+
+                <button
+                    class="action-btn delete-btn"
+                    onclick="deleteTransaction('${t.id}')"
+                >
+                    Delete
+                </button>
+            </td>
+
+        </tr>
+
+    `).join("");
+
+}
+
+
+/* =====================================================
+   EXPENSE TABLE
+===================================================== */
+
+function renderExpenses() {
+
+    const tbody =
+        document.getElementById("expenseTable");
+
+    const list =
+        transactions
+            .filter(t => t.type === "expense")
+            .sort((a,b) =>
+                new Date(b.date) - new Date(a.date)
+            );
+
+
+    if (!list.length) {
+
+        tbody.innerHTML =
+            `<tr>
+                <td colspan="5" class="empty">
+                    No expense records yet.
+                </td>
+            </tr>`;
+
+        return;
+    }
+
+
+    tbody.innerHTML = list.map(t => `
+
+        <tr>
+
+            <td>${t.date}</td>
+
+            <td>${escapeHTML(t.category || "-")}</td>
+
+            <td>${escapeHTML(t.description || "-")}</td>
+
+            <td class="amount-expense">
+                -${formatMoney(t.amount)}
+            </td>
+
+            <td>
+
+                <button
+                    class="action-btn edit-btn"
+                    onclick="editTransaction('${t.id}')"
+                >
+                    Edit
+                </button>
+
+                <button
+                    class="action-btn delete-btn"
+                    onclick="deleteTransaction('${t.id}')"
+                >
+                    Delete
+                </button>
+
+            </td>
+
+        </tr>
+
+    `).join("");
+
+}
+
+
+/* =====================================================
+   LENT TABLE
+===================================================== */
+
+function renderLent() {
+
+    const tbody =
+        document.getElementById("lentTable");
+
+    const lends =
+        transactions
+            .filter(t => t.type === "lend")
+            .sort((a,b) =>
+                new Date(b.date) - new Date(a.date)
+            );
+
+
+    if (!lends.length) {
+
+        tbody.innerHTML =
+            `<tr>
+                <td colspan="8" class="empty">
+                    No money lent records yet.
+                </td>
+            </tr>`;
+
+        return;
+    }
+
+
+    tbody.innerHTML = lends.map(lend => {
+
+        const returned =
+            transactions
+                .filter(t =>
+                    t.type === "receive" &&
+                    t.relatedId === lend.id
+                )
+                .reduce((sum, t) =>
+                    sum + Number(t.amount), 0
+                );
+
+        const remaining =
+            Math.max(
+                0,
+                Number(lend.amount) - returned
+            );
+
+        const status =
+            getStatus(lend.amount, returned);
+
+
+        return `
+
+            <tr>
+
+                <td>${escapeHTML(lend.person || "-")}</td>
+
+                <td>${lend.date}</td>
+
+                <td>${lend.dueDate || "-"}</td>
+
+                <td>${formatMoney(lend.amount)}</td>
+
+                <td class="amount-income">
+                    ${formatMoney(returned)}
+                </td>
+
+                <td class="amount-neutral">
+                    ${formatMoney(remaining)}
+                </td>
+
+                <td>
+                    ${statusBadge(status)}
+                </td>
+
+                <td>
+
+                    ${remaining > 0 ? `
+                        <button
+                            class="action-btn pay-btn"
+                            onclick="receiveMoney('${lend.id}')"
+                        >
+                            Receive
+                        </button>
+                    ` : ""}
+
+                    <button
+                        class="action-btn edit-btn"
+                        onclick="editTransaction('${lend.id}')"
+                    >
+                        Edit
+                    </button>
+
+                    <button
+                        class="action-btn delete-btn"
+                        onclick="deleteTransaction('${lend.id}')"
+                    >
+                        Delete
+                    </button>
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }).join("");
+
+}
+
+
+/* =====================================================
+   BORROWED TABLE
+===================================================== */
+
+function renderBorrowed() {
+
+    const tbody =
+        document.getElementById("borrowedTable");
+
+    const borrowed =
+        transactions
+            .filter(t => t.type === "borrow")
+            .sort((a,b) =>
+                new Date(b.date) - new Date(a.date)
+            );
+
+
+    if (!borrowed.length) {
+
+        tbody.innerHTML =
+            `<tr>
+                <td colspan="8" class="empty">
+                    No borrowed money records yet.
+                </td>
+            </tr>`;
+
+        return;
+    }
+
+
+    tbody.innerHTML = borrowed.map(borrow => {
+
+        const repaid =
+            transactions
+                .filter(t =>
+                    t.type === "repay" &&
+                    t.relatedId === borrow.id
+                )
+                .reduce((sum, t) =>
+                    sum + Number(t.amount), 0
+                );
+
+        const remaining =
+            Math.max(
+                0,
+                Number(borrow.amount) - repaid
+            );
+
+        const status =
+            getStatus(borrow.amount, repaid);
+
+
+        return `
+
+            <tr>
+
+                <td>${escapeHTML(borrow.person || "-")}</td>
+
+                <td>${borrow.date}</td>
+
+                <td>${borrow.dueDate || "-"}</td>
+
+                <td>${formatMoney(borrow.amount)}</td>
+
+                <td class="amount-income">
+                    ${formatMoney(repaid)}
+                </td>
+
+                <td class="amount-expense">
+                    ${formatMoney(remaining)}
+                </td>
+
+                <td>
+                    ${statusBadge(status)}
+                </td>
+
+                <td>
+
+                    ${remaining > 0 ? `
+                        <button
+                            class="action-btn pay-btn"
+                            onclick="repayDebt('${borrow.id}')"
+                        >
+                            Repay
+                        </button>
+                    ` : ""}
+
+                    <button
+                        class="action-btn edit-btn"
+                        onclick="editTransaction('${borrow.id}')"
+                    >
+                        Edit
+                    </button>
+
+                    <button
+                        class="action-btn delete-btn"
+                        onclick="deleteTransaction('${borrow.id}')"
+                    >
+                        Delete
+                    </button>
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }).join("");
+
+}
+
+
+/* =====================================================
+   TRANSACTION HISTORY
+===================================================== */
+
+function renderTransactions() {
+
+    const tbody =
+        document.getElementById("transactionTable");
+
+    const search =
+        document
+            .getElementById("searchTransactions")
+            .value
+            .toLowerCase();
+
+    const dateFilter =
+        document
+            .getElementById("filterDate")
+            .value;
+
+    const typeFilter =
+        document
+            .getElementById("filterType")
+            .value;
+
+
+    let list = [...transactions];
+
+    if (search) {
+
+        list = list.filter(t =>
+            JSON.stringify(t)
+                .toLowerCase()
+                .includes(search)
+        );
+
+    }
+
+    if (dateFilter) {
+        list = list.filter(t =>
+            t.date === dateFilter
+        );
+    }
+
+    if (typeFilter) {
+        list = list.filter(t =>
+            t.type === typeFilter
+        );
+    }
+
+
+    list.sort((a,b) =>
+        new Date(b.date) - new Date(a.date)
+    );
+
+
+    if (!list.length) {
+
+        tbody.innerHTML =
+            `<tr>
+                <td colspan="6" class="empty">
+                    No matching transactions found.
+                </td>
+            </tr>`;
+
+        return;
+    }
+
+
+    tbody.innerHTML = list.map(t => {
+
+        const negative =
+            ["expense", "lend", "repay", "save"]
+                .includes(t.type);
+
+        const amountClass =
+            negative
+                ? "amount-expense"
+                : "amount-income";
+
+        const sign =
+            negative ? "-" : "+";
+
+
+        return `
+
+            <tr>
+
+                <td>${t.date}</td>
+
+                <td>
+                    ${transactionBadge(t.type)}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        t.person ||
+                        t.category ||
+                        t.source ||
+                        "-"
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(t.description || "-")}
+                </td>
+
+                <td class="${amountClass}">
+                    ${sign}${formatMoney(t.amount)}
+                </td>
+
+                <td>
+
+                    <button
+                        class="action-btn edit-btn"
+                        onclick="editTransaction('${t.id}')"
+                    >
+                        Edit
+                    </button>
+
+                    <button
+                        class="action-btn delete-btn"
+                        onclick="deleteTransaction('${t.id}')"
+                    >
+                        Delete
+                    </button>
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }).join("");
+
+}
+
+
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
+
+function escapeHTML(value) {
+
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+const modal =
+    document.getElementById("transactionModal");
+
+
+document
+    .getElementById("openAddModal")
+    .addEventListener("click", () => {
+        openTransactionModal("income");
+    });
+
+
+document
+    .getElementById("closeModal")
+    .addEventListener("click", closeModal);
+
+
+document
+    .getElementById("cancelModal")
+    .addEventListener("click", closeModal);
+
+
+function openTransactionModal(type = "income") {
+
+    editingId = null;
+
+    selectedType = type;
+
+    document.getElementById("modalTitle").textContent =
+        "Add Transaction";
+
+    modal.classList.add("show");
+
+    setActiveType(type);
+
+    renderDynamicForm();
+
+}
+
+
+function closeModal() {
+
+    modal.classList.remove("show");
+
+    editingId = null;
+
+    document
+        .getElementById("transactionForm")
+        .reset();
+
+}
+
+
+document.querySelectorAll(".type-btn")
+    .forEach(button => {
+
+        button.addEventListener("click", () => {
+
+            selectedType =
+                button.dataset.type;
+
+            setActiveType(selectedType);
+
+            renderDynamicForm();
+
+        });
+
+    });
+
+
+function setActiveType(type) {
+
+    document.querySelectorAll(".type-btn")
+        .forEach(button => {
+
+            button.classList.toggle(
+                "active",
+                button.dataset.type === type
+            );
+
+        });
+
+}
+
+
+/* =====================================================
+   DYNAMIC FORM
+===================================================== */
+
+function renderDynamicForm(data = {}) {
+
+    const container =
+        document.getElementById("dynamicForm");
+
+
+    /* INCOME */
+
+    if (selectedType === "income") {
+
+        container.innerHTML = `
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Amount *</label>
+
+                    <input
+                        type="number"
+                        name="amount"
+                        min="0"
+                        step="0.01"
+                        required
+                        value="${data.amount || ""}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Date *</label>
+
+                    <input
+                        type="date"
+                        name="date"
+                        required
+                        value="${data.date || todayDate()}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Income Source *</label>
+
+                    <input
+                        name="source"
+                        required
+                        placeholder="Example: Company, Client"
+                        value="${escapeHTML(data.source || "")}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Category</label>
+
+                    <select name="category">
+
+                        ${selectOption("Salary", data.category)}
+                        ${selectOption("Business Income", data.category)}
+                        ${selectOption("Freelance Income", data.category)}
+                        ${selectOption("Gift", data.category)}
+                        ${selectOption("Other Income", data.category)}
+
+                    </select>
+                </div>
+
+                <div class="form-group full">
+                    <label>Notes</label>
+
+                    <textarea
+                        name="description"
+                        placeholder="Optional description..."
+                    >${escapeHTML(data.description || "")}</textarea>
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* EXPENSE */
+
+    if (selectedType === "expense") {
+
+        container.innerHTML = `
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Amount *</label>
+
+                    <input
+                        type="number"
+                        name="amount"
+                        min="0"
+                        step="0.01"
+                        required
+                        value="${data.amount || ""}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Date *</label>
+
+                    <input
+                        type="date"
+                        name="date"
+                        required
+                        value="${data.date || todayDate()}"
+                    >
+                </div>
+
+                <div class="form-group full">
+                    <label>Expense Category *</label>
+
+                    <select name="category">
+
+                        ${selectOption("Food", data.category)}
+                        ${selectOption("Transportation", data.category)}
+                        ${selectOption("Rent", data.category)}
+                        ${selectOption("Bills", data.category)}
+                        ${selectOption("Shopping", data.category)}
+                        ${selectOption("Entertainment", data.category)}
+                        ${selectOption("Education", data.category)}
+                        ${selectOption("Health", data.category)}
+                        ${selectOption("Other", data.category)}
+
+                    </select>
+                </div>
+
+                <div class="form-group full">
+                    <label>Description / Notes</label>
+
+                    <textarea name="description">${escapeHTML(
+                        data.description || ""
+                    )}</textarea>
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* LEND */
+
+    if (selectedType === "lend") {
+
+        container.innerHTML = `
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Person's Name *</label>
+
+                    <input
+                        name="person"
+                        required
+                        value="${escapeHTML(data.person || "")}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Amount Lent *</label>
+
+                    <input
+                        type="number"
+                        name="amount"
+                        min="0"
+                        step="0.01"
+                        required
+                        value="${data.amount || ""}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Date Lent *</label>
+
+                    <input
+                        type="date"
+                        name="date"
+                        required
+                        value="${data.date || todayDate()}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Expected Return Date</label>
+
+                    <input
+                        type="date"
+                        name="dueDate"
+                        value="${data.dueDate || ""}"
+                    >
+                </div>
+
+                <div class="form-group full">
+                    <label>Notes</label>
+
+                    <textarea name="description">${escapeHTML(
+                        data.description || ""
+                    )}</textarea>
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* RECEIVE */
+
+    if (selectedType === "receive") {
+
+        const lends =
+            transactions.filter(t =>
+                t.type === "lend"
+            );
+
+
+        container.innerHTML = `
+
+            <div class="form-grid">
+
+                <div class="form-group full">
+
+                    <label>Select Person / Loan *</label>
+
+                    <select
+                        name="relatedId"
+                        required
+                    >
+
+                        <option value="">
+                            Select money lent record
+                        </option>
+
+                        ${lends.map(l => {
+
+                            const returned =
+                                transactions
+                                    .filter(t =>
+                                        t.type === "receive" &&
+                                        t.relatedId === l.id
+                                    )
+                                    .reduce((sum, t) =>
+                                        sum + Number(t.amount),
+                                        0
+                                    );
+
+                            const remaining =
+                                Number(l.amount) - returned;
+
+                            if (remaining <= 0) {
+                                return "";
+                            }
+
+                            return `
+                                <option
+                                    value="${l.id}"
+                                    ${data.relatedId === l.id ? "selected" : ""}
+                                >
+                                    ${escapeHTML(l.person)}
+                                    - Remaining:
+                                    ${formatMoney(remaining)}
+                                </option>
+                            `;
+
+                        }).join("")}
+
+                    </select>
+
+                </div>
+
+                <div class="form-group">
+                    <label>Amount Received *</label>
+
+                    <input
+                        type="number"
+                        name="amount"
+                        min="0"
+                        step="0.01"
+                        required
+                        value="${data.amount || ""}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Date *</label>
+
+                    <input
+                        type="date"
+                        name="date"
+                        required
+                        value="${data.date || todayDate()}"
+                    >
+                </div>
+
+                <div class="form-group full">
+                    <label>Notes</label>
+
+                    <textarea name="description">${escapeHTML(
+                        data.description || ""
+                    )}</textarea>
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* SAVINGS DEPOSIT */
+    if (selectedType === "save") {
+        container.innerHTML = `
+            <div class="form-grid">
+                <div class="form-group"><label>Savings Goal / Category *</label><input name="category" required placeholder="Emergency Fund, Vacation, House..." value="${escapeHTML(data.category || "")}"></div>
+                <div class="form-group"><label>Amount to Save *</label><input type="number" name="amount" min="0.01" step="0.01" required value="${data.amount || ""}"></div>
+                <div class="form-group"><label>Target Amount (optional)</label><input type="number" name="targetAmount" min="0" step="0.01" value="${data.targetAmount || ""}"></div>
+                <div class="form-group"><label>Date *</label><input type="date" name="date" required value="${data.date || todayDate()}"></div>
+                <div class="form-group full"><label>Notes</label><textarea name="description">${escapeHTML(data.description || "")}</textarea></div>
+            </div>`;
+    }
+
+    /* SAVINGS WITHDRAWAL */
+    if (selectedType === "withdrawSavings") {
+        const categories = [...new Set(transactions.filter(t => t.type === "save").map(t => t.category).filter(Boolean))];
+        container.innerHTML = `
+            <div class="form-grid">
+                <div class="form-group"><label>Savings Goal / Category *</label><select name="category" required><option value="">Select goal</option>${categories.map(c => `<option value="${escapeHTML(c)}" ${data.category === c ? "selected" : ""}>${escapeHTML(c)}</option>`).join("")}</select></div>
+                <div class="form-group"><label>Amount to Withdraw *</label><input type="number" name="amount" min="0.01" step="0.01" required value="${data.amount || ""}"></div>
+                <div class="form-group"><label>Date *</label><input type="date" name="date" required value="${data.date || todayDate()}"></div>
+                <div class="form-group full"><label>Notes</label><textarea name="description">${escapeHTML(data.description || "")}</textarea></div>
+            </div>`;
+    }
+
+    /* BORROW */
+
+    if (selectedType === "borrow") {
+
+        container.innerHTML = `
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Lender's Name *</label>
+
+                    <input
+                        name="person"
+                        required
+                        value="${escapeHTML(data.person || "")}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Amount Borrowed *</label>
+
+                    <input
+                        type="number"
+                        name="amount"
+                        min="0"
+                        step="0.01"
+                        required
+                        value="${data.amount || ""}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Date Borrowed *</label>
+
+                    <input
+                        type="date"
+                        name="date"
+                        required
+                        value="${data.date || todayDate()}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Due Date</label>
+
+                    <input
+                        type="date"
+                        name="dueDate"
+                        value="${data.dueDate || ""}"
+                    >
+                </div>
+
+                <div class="form-group full">
+                    <label>Notes</label>
+
+                    <textarea name="description">${escapeHTML(
+                        data.description || ""
+                    )}</textarea>
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* REPAY */
+
+    if (selectedType === "repay") {
+
+        const debts =
+            transactions.filter(t =>
+                t.type === "borrow"
+            );
+
+
+        container.innerHTML = `
+
+            <div class="form-grid">
+
+                <div class="form-group full">
+
+                    <label>Select Debt *</label>
+
+                    <select
+                        name="relatedId"
+                        required
+                    >
+
+                        <option value="">
+                            Select debt
+                        </option>
+
+                        ${debts.map(b => {
+
+                            const repaid =
+                                transactions
+                                    .filter(t =>
+                                        t.type === "repay" &&
+                                        t.relatedId === b.id
+                                    )
+                                    .reduce((sum, t) =>
+                                        sum + Number(t.amount),
+                                        0
+                                    );
+
+                            const remaining =
+                                Number(b.amount) - repaid;
+
+                            if (remaining <= 0) {
+                                return "";
+                            }
+
+                            return `
+                                <option
+                                    value="${b.id}"
+                                    ${data.relatedId === b.id ? "selected" : ""}
+                                >
+                                    ${escapeHTML(b.person)}
+                                    - Remaining:
+                                    ${formatMoney(remaining)}
+                                </option>
+                            `;
+
+                        }).join("")}
+
+                    </select>
+
+                </div>
+
+                <div class="form-group">
+                    <label>Amount Repaid *</label>
+
+                    <input
+                        type="number"
+                        name="amount"
+                        min="0"
+                        step="0.01"
+                        required
+                        value="${data.amount || ""}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Date *</label>
+
+                    <input
+                        type="date"
+                        name="date"
+                        required
+                        value="${data.date || todayDate()}"
+                    >
+                </div>
+
+                <div class="form-group full">
+                    <label>Notes</label>
+
+                    <textarea name="description">${escapeHTML(
+                        data.description || ""
+                    )}</textarea>
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+function selectOption(value, selected) {
+
+    return `
+        <option
+            value="${value}"
+            ${value === selected ? "selected" : ""}
+        >
+            ${value}
+        </option>
+    `;
+}
+
+
+/* =====================================================
+   SAVE TRANSACTION
+===================================================== */
+
+document
+    .getElementById("transactionForm")
+    .addEventListener("submit", function(event) {
+
+        event.preventDefault();
+
+        const formData =
+            new FormData(event.target);
+
+        const data =
+            Object.fromEntries(
+                formData.entries()
+            );
+
+
+        data.amount =
+            Number(data.amount);
+
+
+        /*
+           Prevent receiving more than remaining
+        */
+
+        if (
+            data.relatedId &&
+            selectedType === "receive"
+        ) {
+
+            const loan =
+                transactions.find(t =>
+                    t.id === data.relatedId
+                );
+
+            const alreadyReceived =
+                transactions
+                    .filter(t =>
+                        t.type === "receive" &&
+                        t.relatedId === data.relatedId &&
+                        t.id !== editingId
+                    )
+                    .reduce((sum, t) =>
+                        sum + Number(t.amount), 0
+                    );
+
+            if (
+                data.amount >
+                Number(loan.amount) - alreadyReceived
+            ) {
+
+                alert(
+                    "The received amount cannot be greater than the remaining amount."
+                );
+
+                return;
+            }
+
+        }
+
+
+        /*
+           Prevent repayment more than debt
+        */
+
+        if (
+            data.relatedId &&
+            selectedType === "repay"
+        ) {
+
+            const debt =
+                transactions.find(t =>
+                    t.id === data.relatedId
+                );
+
+            const alreadyRepaid =
+                transactions
+                    .filter(t =>
+                        t.type === "repay" &&
+                        t.relatedId === data.relatedId &&
+                        t.id !== editingId
+                    )
+                    .reduce((sum, t) =>
+                        sum + Number(t.amount), 0
+                    );
+
+            if (
+                data.amount >
+                Number(debt.amount) - alreadyRepaid
+            ) {
+
+                alert(
+                    "The repayment amount cannot be greater than the remaining debt."
+                );
+
+                return;
+            }
+
+        }
+
+
+        if (editingId) {
+
+            const index =
+                transactions.findIndex(t =>
+                    t.id === editingId
+                );
+
+            transactions[index] = {
+                ...transactions[index],
+                ...data,
+                type: selectedType
+            };
+
+        } else {
+
+            transactions.push({
+
+                id:
+                    Date.now()
+                    .toString()
+                    + Math.random()
+                        .toString(16)
+                        .slice(2),
+
+                type: selectedType,
+
+                ...data
+
+            });
+
+        }
+
+
+        saveData();
+
+        closeModal();
+
+        renderAll();
+
+    });
+
+
+/* =====================================================
+   EDIT
+===================================================== */
+
+function editTransaction(id) {
+
+    const transaction =
+        transactions.find(t =>
+            t.id === id
+        );
+
+    if (!transaction) return;
+
+    editingId = id;
+
+    selectedType =
+        transaction.type;
+
+    modal.classList.add("show");
+
+    document.getElementById("modalTitle").textContent =
+        "Edit Transaction";
+
+    setActiveType(selectedType);
+
+    renderDynamicForm(transaction);
+
+}
+
+
+/* =====================================================
+   DELETE
+===================================================== */
+
+function deleteTransaction(id) {
+
+    const transaction =
+        transactions.find(t =>
+            t.id === id
+        );
+
+    if (!transaction) return;
+
+
+    let message =
+        "Are you sure you want to delete this transaction?";
+
+
+    if (
+        transaction.type === "lend" ||
+        transaction.type === "borrow"
+    ) {
+
+        message =
+            "Deleting this record will also delete its related repayments/received transactions. Continue?";
+
+    }
+
+
+    if (!confirm(message)) return;
+
+
+    if (transaction.type === "lend") {
+
+        transactions =
+            transactions.filter(t =>
+                t.id !== id &&
+                t.relatedId !== id
+            );
+
+    }
+
+    else if (transaction.type === "borrow") {
+
+        transactions =
+            transactions.filter(t =>
+                t.id !== id &&
+                t.relatedId !== id
+            );
+
+    }
+
+    else {
+
+        transactions =
+            transactions.filter(t =>
+                t.id !== id
+            );
+
+    }
+
+
+    saveData();
+
+    renderAll();
+
+}
+
+
+/* =====================================================
+   QUICK RECEIVE / REPAY
+===================================================== */
+
+function receiveMoney(loanId) {
+
+    const loan =
+        transactions.find(t =>
+            t.id === loanId
+        );
+
+    if (!loan) return;
+
+
+    selectedType = "receive";
+
+    editingId = null;
+
+    modal.classList.add("show");
+
+    document.getElementById("modalTitle").textContent =
+        `Receive Money from ${loan.person}`;
+
+    setActiveType("receive");
+
+    renderDynamicForm({
+        relatedId: loanId,
+        date: todayDate()
+    });
+
+}
+
+
+function repayDebt(debtId) {
+
+    const debt =
+        transactions.find(t =>
+            t.id === debtId
+        );
+
+    if (!debt) return;
+
+
+    selectedType = "repay";
+
+    editingId = null;
+
+    modal.classList.add("show");
+
+    document.getElementById("modalTitle").textContent =
+        `Repay Debt to ${debt.person}`;
+
+    setActiveType("repay");
+
+    renderDynamicForm({
+        relatedId: debtId,
+        date: todayDate()
+    });
+
+}
+
+
+/* =====================================================
+   FILTER EVENTS
+===================================================== */
+
+[
+    "searchTransactions",
+    "filterDate",
+    "filterType"
+].forEach(id => {
+
+    document
+        .getElementById(id)
+        .addEventListener("input", renderTransactions);
+
+});
+
+
+/* =====================================================
+   CHARTS
+===================================================== */
+
+function destroyChart(name) {
+
+    if (charts[name]) {
+        charts[name].destroy();
+    }
+
+}
+
+
+function renderCharts() {
+
+    const f = calculateFinance();
+
+
+    /*
+       DASHBOARD CHART
+    */
+
+    destroyChart("incomeExpense");
+
+    const ctx1 =
+        document
+            .getElementById("incomeExpenseChart");
+
+    if (ctx1) {
+
+        charts.incomeExpense =
+            new Chart(ctx1, {
+
+                type: "bar",
+
+                data: {
+
+                    labels: [
+                        "Income",
+                        "Expenses"
+                    ],
+
+                    datasets: [{
+
+                        label: "Amount",
+
+                        data: [
+                            f.totalIncome,
+                            f.totalExpenses
+                        ]
+
+                    }]
+
+                },
+
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true
+                }
+
+            });
+
+    }
+
+
+    /*
+       MONTHLY DATA
+    */
+
+    const months = {};
+
+    transactions.forEach(t => {
+
+        const date =
+            new Date(t.date);
+
+        const key =
+            `${date.getFullYear()}-${String(
+                date.getMonth() + 1
+            ).padStart(2, "0")}`;
+
+        if (!months[key]) {
+
+            months[key] = {
+                income: 0,
+                expense: 0
+            };
+
+        }
+
+        if (t.type === "income") {
+            months[key].income += Number(t.amount);
+        }
+
+        if (t.type === "expense") {
+            months[key].expense += Number(t.amount);
+        }
+
+    });
+
+
+    const monthKeys =
+        Object.keys(months).sort();
+
+
+    destroyChart("monthly");
+
+    const ctx2 =
+        document
+            .getElementById("monthlyChart");
+
+    if (ctx2) {
+
+        charts.monthly =
+            new Chart(ctx2, {
+
+                type: "bar",
+
+                data: {
+
+                    labels: monthKeys,
+
+                    datasets: [
+
+                        {
+                            label: "Income",
+                            data:
+                                monthKeys.map(
+                                    key =>
+                                        months[key].income
+                                )
+                        },
+
+                        {
+                            label: "Expenses",
+                            data:
+                                monthKeys.map(
+                                    key =>
+                                        months[key].expense
+                                )
+                        }
+
+                    ]
+
+                },
+
+                options: {
+                    responsive: true
+                }
+
+            });
+
+    }
+
+
+    /*
+       EXPENSE CATEGORY
+    */
+
+    const categories = {};
+
+    transactions
+        .filter(t =>
+            t.type === "expense"
+        )
+        .forEach(t => {
+
+            const category =
+                t.category || "Other";
+
+            categories[category] =
+                (categories[category] || 0)
+                + Number(t.amount);
+
+        });
+
+
+    destroyChart("category");
+
+    const ctx3 =
+        document
+            .getElementById("expenseCategoryChart");
+
+    if (ctx3) {
+
+        charts.category =
+            new Chart(ctx3, {
+
+                type: "doughnut",
+
+                data: {
+
+                    labels:
+                        Object.keys(categories),
+
+                    datasets: [{
+
+                        data:
+                            Object.values(categories)
+
+                    }]
+
+                },
+
+                options: {
+                    responsive: true
+                }
+
+            });
+
+    }
+
+
+    /*
+       LENT VS RETURNED
+    */
+
+    destroyChart("lent");
+
+    const ctx4 =
+        document
+            .getElementById("lentChart");
+
+    if (ctx4) {
+
+        charts.lent =
+            new Chart(ctx4, {
+
+                type: "bar",
+
+                data: {
+
+                    labels: [
+                        "Money Lent",
+                        "Money Returned"
+                    ],
+
+                    datasets: [{
+
+                        label: "Amount",
+
+                        data: [
+                            f.totalLent,
+                            f.moneyReceivedBack
+                        ]
+
+                    }]
+
+                },
+
+                options: {
+                    responsive: true
+                }
+
+            });
+
+    }
+
+
+    document
+        .getElementById("reportReceivable")
+        .textContent =
+        formatMoney(f.receivable);
+
+    document
+        .getElementById("reportDebt")
+        .textContent =
+        formatMoney(f.remainingDebt);
+
+    document
+        .getElementById("reportNet")
+        .textContent =
+        formatMoney(f.netBalance);
+
+}
+
+
+/* =====================================================
+   SETTINGS
+===================================================== */
+
+function loadSettings() {
+
+    document
+        .getElementById("currencyInput")
+        .value =
+        settings.currency;
+
+    document
+        .getElementById("themeSelect")
+        .value =
+        settings.theme;
+
+    if (settings.theme === "dark") {
+        document.body.classList.add("dark");
+    }
+
+}
+
+
+document
+    .getElementById("saveSettings")
+    .addEventListener("click", () => {
+
+        settings.currency =
+            document
+                .getElementById("currencyInput")
+                .value || "$";
+
+        settings.theme =
+            document
+                .getElementById("themeSelect")
+                .value;
+
+        document.body.classList.toggle(
+            "dark",
+            settings.theme === "dark"
+        );
+
+        saveSettingsData();
+
+        renderAll();
+
+    });
+
+
+document
+    .getElementById("themeToggle")
+    .addEventListener("click", () => {
+
+        settings.theme =
+            settings.theme === "light"
+                ? "dark"
+                : "light";
+
+        document.body.classList.toggle(
+            "dark",
+            settings.theme === "dark"
+        );
+
+        document
+            .getElementById("themeSelect")
+            .value =
+            settings.theme;
+
+        saveSettingsData();
+
+    });
+
+
+document
+    .getElementById("clearData")
+    .addEventListener("click", () => {
+
+        if (
+            confirm(
+                "This will permanently delete all financial data. Continue?"
+            )
+        ) {
+
+            transactions = [];
+
+            saveData();
+
+            renderAll();
+
+        }
+
+    });
+
+
+/* =====================================================
+   RENDER SAVINGS
+===================================================== */
+function renderSavings() {
+    const f = calculateFinance();
+    const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+    set("savingsBalance", formatMoney(f.currentSavings));
+    set("totalSavedAmount", formatMoney(f.totalSaved));
+    set("savingsRatePage", `${f.savingsRate.toFixed(1)}%`);
+
+    const categories = {};
+    transactions.filter(t => t.type === "save" || t.type === "withdrawSavings").forEach(t => {
+        const name = t.category || "General Savings";
+        if (!categories[name]) categories[name] = {saved:0, withdrawn:0, target:0};
+        if (t.type === "save") { categories[name].saved += Number(t.amount||0); categories[name].target = Math.max(categories[name].target, Number(t.targetAmount||0)); }
+        else categories[name].withdrawn += Number(t.amount||0);
+    });
+    const goals = document.getElementById("savingsGoalsList");
+    if (goals) {
+        const entries = Object.entries(categories);
+        goals.innerHTML = entries.length ? entries.map(([name, g]) => {
+            const balance = Math.max(0, g.saved - g.withdrawn);
+            const percent = g.target > 0 ? Math.min(100, balance / g.target * 100) : 100;
+            return `<div class="goal-row"><div style="display:flex;justify-content:space-between;gap:15px;"><strong>${escapeHTML(name)}</strong><span>${formatMoney(balance)}${g.target > 0 ? ` / ${formatMoney(g.target)}` : ""}</span></div><div class="progress"><span style="width:${percent}%"></span></div><div class="summary-label" style="margin-top:6px;">${g.target > 0 ? `${percent.toFixed(1)}% of goal` : "No target set"}</div></div>`;
+        }).join("") : '<div class="empty">No savings yet. Add your first savings deposit to start tracking.</div>';
+    }
+    const tbody = document.getElementById("savingsTable");
+    if (tbody) {
+        const list = transactions.filter(t => t.type === "save" || t.type === "withdrawSavings").sort((a,b)=>new Date(b.date)-new Date(a.date));
+        tbody.innerHTML = list.length ? list.map(t => `<tr><td>${t.date}</td><td>${transactionBadge(t.type)}</td><td>${escapeHTML(t.category || "General Savings")}</td><td>${escapeHTML(t.description || "-")}</td><td class="${t.type === "save" ? "amount-income" : "amount-expense"}">${t.type === "save" ? "+" : "-"}${formatMoney(t.amount)}</td><td><button class="action-btn edit-btn" onclick="editTransaction('${t.id}')">Edit</button><button class="action-btn delete-btn" onclick="deleteTransaction('${t.id}')">Delete</button></td></tr>`).join("") : '<tr><td colspan="6" class="empty">No savings transactions yet.</td></tr>';
+    }
+}
+
+/* =====================================================
+   RENDER EVERYTHING
+===================================================== */
+
+function renderAll() {
+
+    renderDashboard();
+
+    renderIncome();
+
+    renderExpenses();
+
+    renderSavings();
+
+    renderLent();
+
+    renderBorrowed();
+
+    renderTransactions();
+
+    renderCharts();
+
+}
+
+
+/* =====================================================
+   INITIALIZE
+===================================================== */
+
+loadSettings();
+
+renderAll();
+
+</script>
+
+</body>
+</html>
